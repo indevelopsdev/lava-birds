@@ -1,0 +1,14 @@
+# Roblox place files (binary/noisy)
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+rojo.zip
+
+# Rojo outputs
+out/
+
+# Spec Kit agent data (may contain tokens); adjust if you want to track it
+.codex/
+
+# OS/editor cruft
+.DS_Store

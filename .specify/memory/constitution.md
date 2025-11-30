@@ -1,50 +1,33 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Lava Birds Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### P1. Diversión primero, sesiones cortas
+Rondas claras de 60–180 s con tiempo-a-diversión < 30 s. Cada cambio debe proteger el loop central: subir lava, movilidad de aves y perchas con riesgo/recompensa.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### P2. Autoridad de servidor y equidad
+El servidor decide daño, puntuación y progresión. Todo dato que afecta estado se valida en `ServerScriptService`. Los remotes se filtran con límites y cooldowns.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### P3. Simplicidad y rendimiento en Roblox
+Part count bajo; sin `while true do` sin `task.wait()`. Usa `CollectionService` para hazards/power-ups y streaming habilitado si el mapa crece. Evitar dependencias externas.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### P4. Pruebas y playtest rápido
+Cada cambio debe probarse en Studio (Play y Start Server con 2+ jugadores locales). Para módulos clave, añade asserts ligeros o escenarios reproducibles.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### P5. UX clara y accesible
+UI legible (fuentes y contraste), mensajes cortos en español. Indicadores de ronda, altura de lava y estado del jugador visibles sin estorbar el juego.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Restricciones y lineamientos
+- Plataforma: Roblox Studio + Rojo; lenguaje Luau. Datos persistentes limitados a stats esenciales vía DataStore (con manejo de fallos).
+- Seguridad: ningún cálculo final en cliente para monedas/puntos/vida. Usa `RemoteEvent`/`RemoteFunction` con parámetros acotados.
+- Arte/sonido: assets subidos a Roblox; guarda fuentes en `assets/` y referencia por `assetId`.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Flujo de trabajo y calidad
+- Especificar antes de construir: seguir `/speckit.constitution` → `/speckit.specify` → `/speckit.plan` → `/speckit.tasks` → `/speckit.implement`.
+- Branching/tareas: nombrar ramas `###-nombre-corto`; cada historia debe ser demostrable de forma independiente.
+- Revisiones: ningún merge sin validación en Studio y sin que los criterios de aceptación estén satisfechos; evita over-engineering fuera del plan.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+La constitución manda sobre decisiones técnicas. Cambios requieren actualizar este documento, explicar impacto en gameplay/seguridad y fecha de enmienda.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2025-11-29 | **Last Amended**: 2025-11-29
