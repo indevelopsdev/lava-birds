@@ -100,8 +100,15 @@ roundEvent.OnClientEvent:Connect(function(payload)
 		timerLabel.Text = "Ronda: " .. formatSeconds(payload.remaining or 0)
 	elseif payload.status == "ended" then
 		timerLabel.Text = "Ronda: 00:00"
-		statusLabel.Text = "Ronda terminada"
-		statusLabel.BackgroundColor3 = Color3.fromRGB(60, 20, 20)
+		local winners = payload.winners or {}
+		local youWon = table.find(winners, player.Name) ~= nil
+		if youWon then
+			statusLabel.Text = "¡Ganaste la ronda!"
+			statusLabel.BackgroundColor3 = Color3.fromRGB(20, 80, 40)
+		else
+			statusLabel.Text = "Ronda terminada"
+			statusLabel.BackgroundColor3 = Color3.fromRGB(60, 20, 20)
+		end
 		countdownLabel.Visible = false
 	end
 end)

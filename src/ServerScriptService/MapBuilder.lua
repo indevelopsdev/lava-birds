@@ -5,6 +5,7 @@ local MapBuilder = {}
 -- Layout sencillo generado por código para no depender de edición en Studio.
 -- Estructura: una base de lobby y varias plataformas/perchas en distintos niveles.
 local PARTS = {
+	-- Lobby base
 	{
 		name = "Lobby",
 		size = Vector3.new(50, 2, 50),
@@ -12,55 +13,18 @@ local PARTS = {
 		color = Color3.fromRGB(60, 60, 60),
 		material = Enum.Material.Slate,
 	},
-	{
-		name = "Perch1",
-		size = Vector3.new(20, 2, 10),
-		cframe = CFrame.new(0, 12, 30), -- movida lejos del spawn
-		color = Color3.fromRGB(90, 120, 170),
-		material = Enum.Material.SmoothPlastic,
-	},
-	{
-		name = "Perch2",
-		size = Vector3.new(14, 2, 8),
-		cframe = CFrame.new(25, 16, -10),
-		color = Color3.fromRGB(160, 120, 90),
-		material = Enum.Material.WoodPlanks,
-	},
-	{
-		name = "Perch3",
-		size = Vector3.new(10, 2, 10),
-		cframe = CFrame.new(-25, 18, 12),
-		color = Color3.fromRGB(100, 180, 120),
-		material = Enum.Material.Grass,
-	},
-	{
-		name = "Beam1",
-		size = Vector3.new(2, 2, 24),
-		cframe = CFrame.new(0, 22, -25),
-		color = Color3.fromRGB(200, 160, 80),
-		material = Enum.Material.Metal,
-	},
-	{
-		name = "Pillar1",
-		size = Vector3.new(4, 14, 4),
-		cframe = CFrame.new(12, 7, 18),
-		color = Color3.fromRGB(150, 150, 180),
-		material = Enum.Material.Concrete,
-	},
-	{
-		name = "Pillar2",
-		size = Vector3.new(4, 10, 4),
-		cframe = CFrame.new(-12, 5, -18),
-		color = Color3.fromRGB(180, 140, 140),
-		material = Enum.Material.Concrete,
-	},
-	{
-		name = "PerchTop",
-		size = Vector3.new(18, 2, 12),
-		cframe = CFrame.new(0, 28, -25),
-		color = Color3.fromRGB(120, 100, 200),
-		material = Enum.Material.Fabric,
-	},
+	-- Ruta en espiral hacia arriba
+	{ name = "Step1", size = Vector3.new(14, 2, 14), cframe = CFrame.new(0, 8, 18), color = Color3.fromRGB(90, 120, 170), material = Enum.Material.SmoothPlastic },
+	{ name = "Step2", size = Vector3.new(12, 2, 12), cframe = CFrame.new(18, 12, 12), color = Color3.fromRGB(160, 120, 90), material = Enum.Material.WoodPlanks },
+	{ name = "Step3", size = Vector3.new(10, 2, 10), cframe = CFrame.new(24, 16, -4), color = Color3.fromRGB(100, 180, 120), material = Enum.Material.Grass },
+	{ name = "Step4", size = Vector3.new(8, 2, 10), cframe = CFrame.new(14, 20, -20), color = Color3.fromRGB(200, 160, 80), material = Enum.Material.Metal },
+	{ name = "Step5", size = Vector3.new(10, 2, 10), cframe = CFrame.new(-2, 24, -26), color = Color3.fromRGB(140, 100, 180), material = Enum.Material.Fabric },
+	{ name = "Step6", size = Vector3.new(12, 2, 12), cframe = CFrame.new(-18, 28, -16), color = Color3.fromRGB(120, 160, 200), material = Enum.Material.SmoothPlastic },
+	{ name = "Step7", size = Vector3.new(10, 2, 10), cframe = CFrame.new(-24, 32, 2), color = Color3.fromRGB(180, 140, 140), material = Enum.Material.Concrete },
+	{ name = "Step8", size = Vector3.new(8, 2, 10), cframe = CFrame.new(-16, 36, 18), color = Color3.fromRGB(100, 140, 200), material = Enum.Material.Metal },
+	{ name = "Step9", size = Vector3.new(10, 2, 10), cframe = CFrame.new(0, 40, 24), color = Color3.fromRGB(120, 200, 140), material = Enum.Material.Grass },
+	-- Meta alta (no la alcanza la lava MaxY=45)
+	{ name = "NestTop", size = Vector3.new(20, 2, 20), cframe = CFrame.new(0, 70, 0), color = Color3.fromRGB(255, 200, 80), material = Enum.Material.WoodPlanks },
 }
 
 local function ensureFolder()

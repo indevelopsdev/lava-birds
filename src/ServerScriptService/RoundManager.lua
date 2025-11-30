@@ -124,6 +124,7 @@ local function runRound()
 	PowerUps.stop()
 
 	-- Recompensas: todos base, bonus a vivos
+	local winners = {}
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player.Character then
 			local hum = player.Character:FindFirstChildOfClass("Humanoid")
@@ -131,12 +132,13 @@ local function runRound()
 			local reward = Constants.Rewards.BasePerRound
 			if alive then
 				reward = reward + Constants.Rewards.SurvivorBonus
+				table.insert(winners, player.Name)
 			end
 			updateCoins(player, reward)
 		end
 	end
 
-	broadcast({ status = "ended" })
+	broadcast({ status = "ended", winners = winners })
 	task.wait(Constants.RespawnDelay)
 	respawnAll()
 	task.wait(Constants.RoundIntermission)
@@ -151,6 +153,8 @@ end
 local RoundManager = {}
 
 function RoundManager.start()
+	Players.CharacterAutoLoads = false
+
 	if running then
 		warn("[lava_birds] RoundManager ya está corriendo")
 		return
@@ -166,6 +170,7 @@ function RoundManager.start()
 				placeCharacterSafely(char)
 			end)
 		end)
+		player:LoadCharacter()
 	end)
 
 	for _, player in ipairs(Players:GetPlayers()) do
@@ -176,6 +181,7 @@ function RoundManager.start()
 				placeCharacterSafely(char)
 			end)
 		end)
+		player:LoadCharacter()
 	end
 
 	task.spawn(roundLoop)
