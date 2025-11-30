@@ -31,6 +31,23 @@ local function ensureLavaPart()
 	return newPart
 end
 
+function LavaController.getHeight()
+	local part = lavaPart or Workspace:FindFirstChild(Constants.Lava.PartName)
+	if part and part:IsA("BasePart") then
+		return part.Position.Y, part.Size.Y
+	end
+	return Constants.Lava.StartY, Constants.Lava.Size.Y
+end
+
+local function isImmune(character: Model)
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp then
+		return false
+	end
+	local immuneUntil = hrp:GetAttribute("LavaImmuneUntil")
+	return type(immuneUntil) == "number" and immuneUntil > os.clock()
+end
+
 function LavaController.reset()
 	lavaPart = lavaPart or ensureLavaPart()
 	if not lavaPart then
@@ -58,9 +75,32 @@ local function onTouched(otherPart: BasePart)
 	if not character then
 		return
 	end
+	if isImmune(character) then
+		return
+	end
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if humanoid and humanoid.Health > 0 then
 		humanoid:TakeDamage(Constants.LavaTouchDamage)
+	end
+end
+
+local function killPlayersBelowSurface()
+	local surfaceY = Constants.Lava.StartY
+	if lavaPart then
+		surfaceY = lavaPart.Position.Y + (lavaPart.Size.Y * 0.5)
+	end
+
+	for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+		local character = player.Character
+		if character then
+			local hrp = character:FindFirstChild("HumanoidRootPart")
+			local hum = character:FindFirstChildOfClass("Humanoid")
+			if hrp and hum and hum.Health > 0 then
+				if not isImmune(character) and hrp.Position.Y <= surfaceY + 1 then
+					hum:TakeDamage(Constants.LavaTouchDamage)
+				end
+			end
+		end
 	end
 end
 
@@ -94,6 +134,8 @@ function LavaController.start()
 		local pos = lavaPart.Position
 		local nextY = math.min(Constants.Lava.MaxY, pos.Y + speed * dt)
 		lavaPart.CFrame = CFrame.new(pos.X, nextY, pos.Z)
+
+		killPlayersBelowSurface()
 	end)
 
 	print(string.format("[lava_birds] LavaController start (Phase2 @ %ds, speed1=%.2f, speed2=%.2f)", phase2Time, Constants.Lava.Phase1Speed, Constants.Lava.Phase2Speed))

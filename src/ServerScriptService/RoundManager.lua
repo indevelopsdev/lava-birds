@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Constants = require(Shared:WaitForChild("Constants"))
 local LavaController = require(script.Parent:WaitForChild("LavaController"))
+local PowerUps = require(script.Parent:WaitForChild("PowerUps"))
 
 local EventsFolder = ReplicatedStorage:FindFirstChild("Events") or Instance.new("Folder")
 EventsFolder.Name = "Events"
@@ -18,17 +19,66 @@ if not RoundStateEvent then
 	print("[lava_birds] RoundState RemoteEvent creado")
 end
 
+local CoinsEvent = EventsFolder:FindFirstChild("Coins")
+if not CoinsEvent then
+	CoinsEvent = Instance.new("RemoteEvent")
+	CoinsEvent.Name = "Coins"
+	CoinsEvent.Parent = EventsFolder
+end
+
 local running = false
 local roundEndTime = 0
+local coins = {}
+
+local function placeCharacterSafely(character: Model)
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp then
+		return
+	end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local spawnPart = game.Workspace:FindFirstChild("SpawnLocation")
+	local spawnPos = spawnPart and spawnPart.Position or Vector3.new(0, Constants.Lava.StartY + Constants.SafeRespawnOffset, 0)
+
+	local lavaY = LavaController.getHeight()
+	-- +5 extra para evitar quedar incrustado en el suelo
+	local safeY = math.max(spawnPos.Y + 5, lavaY + Constants.SafeRespawnOffset)
+
+	hrp.AssemblyLinearVelocity = Vector3.zero
+	hrp.AssemblyAngularVelocity = Vector3.zero
+	hrp.CFrame = CFrame.new(spawnPos.X, safeY, spawnPos.Z)
+
+	if humanoid then
+		humanoid.Sit = false
+		humanoid.PlatformStand = false
+		humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+	end
+end
 
 local function broadcast(payload)
 	RoundStateEvent:FireAllClients(payload)
+end
+
+local function updateCoins(player: Player, amount: number)
+	coins[player.UserId] = (coins[player.UserId] or 0) + amount
+	CoinsEvent:FireClient(player, coins[player.UserId])
+end
+
+local function setCoins(player: Player, amount: number)
+	coins[player.UserId] = amount
+	CoinsEvent:FireClient(player, amount)
 end
 
 local function respawnAll()
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player.Character then
 			player:LoadCharacter()
+			task.defer(function()
+				if player.Character then
+					task.wait(0.05)
+					placeCharacterSafely(player.Character)
+				end
+			end)
 		end
 	end
 end
@@ -51,7 +101,18 @@ local function runRound()
 	running = true
 
 	LavaController.reset()
+
+	-- Reubica a todos antes de que la lava suba
+	respawnAll()
+
+	-- Cuenta regresiva antes de iniciar la lava
+	for t = Constants.RoundStartDelay, 1, -1 do
+		broadcast({ status = "prestart", remaining = t })
+		task.wait(1)
+	end
+
 	LavaController.start()
+	PowerUps.start()
 
 	roundEndTime = os.clock() + Constants.RoundDuration
 	broadcast({ status = "start", duration = Constants.RoundDuration })
@@ -60,6 +121,20 @@ local function runRound()
 
 	running = false
 	LavaController.stop()
+	PowerUps.stop()
+
+	-- Recompensas: todos base, bonus a vivos
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player.Character then
+			local hum = player.Character:FindFirstChildOfClass("Humanoid")
+			local alive = hum and hum.Health > 0
+			local reward = Constants.Rewards.BasePerRound
+			if alive then
+				reward = reward + Constants.Rewards.SurvivorBonus
+			end
+			updateCoins(player, reward)
+		end
+	end
 
 	broadcast({ status = "ended" })
 	task.wait(Constants.RespawnDelay)
@@ -81,6 +156,28 @@ function RoundManager.start()
 		return
 	end
 	print("[lava_birds] RoundManager start")
+
+	-- Reubica de forma segura cuando aparece un personaje
+	Players.PlayerAdded:Connect(function(player)
+		setCoins(player, coins[player.UserId] or 0)
+		player.CharacterAdded:Connect(function(char)
+			task.defer(function()
+				task.wait(0.05)
+				placeCharacterSafely(char)
+			end)
+		end)
+	end)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		setCoins(player, coins[player.UserId] or 0)
+		player.CharacterAdded:Connect(function(char)
+			task.defer(function()
+				task.wait(0.05)
+				placeCharacterSafely(char)
+			end)
+		end)
+	end
+
 	task.spawn(roundLoop)
 end
 
