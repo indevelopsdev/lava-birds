@@ -9,6 +9,9 @@ local lavaPart: BasePart?
 local running = false
 local heartbeatConn: RBXScriptConnection?
 local touchConn: RBXScriptConnection?
+local textureA: Texture?
+local textureB: Texture?
+local surface: SurfaceAppearance?
 
 local function ensureLavaPart()
 	-- Busca el part; si no existe, crea uno con los valores de Constants.
@@ -39,13 +42,62 @@ function LavaController.getHeight()
 	return Constants.Lava.StartY, Constants.Lava.Size.Y
 end
 
-local function isImmune(character: Model)
-	local hrp = character:FindFirstChild("HumanoidRootPart")
-	if not hrp then
-		return false
+local function ensureEffects(part: BasePart)
+	-- Simple FX sin assets externos: fuego + chispas/nube.
+	local fire = part:FindFirstChildOfClass("Fire")
+	if not fire then
+		fire = Instance.new("Fire")
+		fire.Size = 8
+		fire.Heat = 6
+		fire.Color = Color3.fromRGB(255, 140, 60)
+		fire.SecondaryColor = Color3.fromRGB(255, 50, 10)
+		fire.Parent = part
 	end
-	local immuneUntil = hrp:GetAttribute("LavaImmuneUntil")
-	return type(immuneUntil) == "number" and immuneUntil > os.clock()
+
+	local emitter = part:FindFirstChildOfClass("ParticleEmitter")
+	if not emitter then
+		emitter = Instance.new("ParticleEmitter")
+		emitter.Name = "LavaEmber"
+		emitter.Texture = "rbxassetid://244221613" -- spark texture builtin
+		emitter.Rate = 15
+		emitter.Lifetime = NumberRange.new(1.2, 1.8)
+		emitter.Speed = NumberRange.new(2, 5)
+		emitter.Rotation = NumberRange.new(0, 360)
+		emitter.RotSpeed = NumberRange.new(-60, 60)
+		emitter.LightEmission = 0.7
+		emitter.Size = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.6),
+			NumberSequenceKeypoint.new(0.5, 0.4),
+			NumberSequenceKeypoint.new(1, 0),
+		})
+		emitter.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 180, 80)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 80, 30)),
+		})
+		emitter.Parent = part
+	end
+
+	-- Textura desplazada para simular flujo
+	if not textureA then
+		textureA = Instance.new("Texture")
+		textureA.Name = "LavaTexA"
+		textureA.Texture = "rbxasset://textures/terrain/Lava/Lava_BaseColor.png"
+		textureA.StudsPerTileU = 12
+		textureA.StudsPerTileV = 12
+		textureA.Face = Enum.NormalId.Top
+		textureA.Transparency = 0
+		textureA.Parent = part
+	end
+	if not textureB then
+		textureB = Instance.new("Texture")
+		textureB.Name = "LavaTexB"
+		textureB.Texture = "rbxasset://textures/terrain/Lava/Lava_BaseColor.png"
+		textureB.StudsPerTileU = 12
+		textureB.StudsPerTileV = 12
+		textureB.Face = Enum.NormalId.Top
+		textureB.Transparency = 0.3
+		textureB.Parent = part
+	end
 end
 
 function LavaController.reset()
@@ -65,6 +117,9 @@ function LavaController.reset()
 	if Constants.Lava.Material then
 		lavaPart.Material = Constants.Lava.Material
 	end
+	lavaPart.Transparency = 0 -- sin transparencia para tapar el fondo
+	lavaPart.Reflectance = 0
+	ensureEffects(lavaPart)
 	local pos = lavaPart.Position
 	lavaPart.CFrame = CFrame.new(pos.X, Constants.Lava.StartY, pos.Z)
 	print(string.format("[lava_birds] Lava reset a Y=%.2f", Constants.Lava.StartY))
@@ -73,9 +128,6 @@ end
 local function onTouched(otherPart: BasePart)
 	local character = otherPart.Parent
 	if not character then
-		return
-	end
-	if isImmune(character) then
 		return
 	end
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -96,7 +148,7 @@ local function killPlayersBelowSurface()
 			local hrp = character:FindFirstChild("HumanoidRootPart")
 			local hum = character:FindFirstChildOfClass("Humanoid")
 			if hrp and hum and hum.Health > 0 then
-				if not isImmune(character) and hrp.Position.Y <= surfaceY + 1 then
+				if hrp.Position.Y <= surfaceY + 1 then
 					hum:TakeDamage(Constants.LavaTouchDamage)
 				end
 			end
@@ -105,7 +157,7 @@ local function killPlayersBelowSurface()
 end
 
 function LavaController.start()
-	lavaPart = lavaPart or findLavaPart()
+	lavaPart = lavaPart or ensureLavaPart()
 	if not lavaPart then
 		return
 	end
@@ -136,6 +188,16 @@ function LavaController.start()
 		lavaPart.CFrame = CFrame.new(pos.X, nextY, pos.Z)
 
 		killPlayersBelowSurface()
+
+		-- Animar desplazamiento de textura
+		if textureA then
+			textureA.OffsetStudsU = textureA.OffsetStudsU + dt * 2
+			textureA.OffsetStudsV = textureA.OffsetStudsV + dt * 1
+		end
+		if textureB then
+			textureB.OffsetStudsU = textureB.OffsetStudsU - dt * 1.5
+			textureB.OffsetStudsV = textureB.OffsetStudsV + dt * 0.8
+		end
 	end)
 
 	print(string.format("[lava_birds] LavaController start (Phase2 @ %ds, speed1=%.2f, speed2=%.2f)", phase2Time, Constants.Lava.Phase1Speed, Constants.Lava.Phase2Speed))

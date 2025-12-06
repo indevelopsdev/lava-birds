@@ -5,7 +5,6 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Constants = require(Shared:WaitForChild("Constants"))
 local LavaController = require(script.Parent:WaitForChild("LavaController"))
-local PowerUps = require(script.Parent:WaitForChild("PowerUps"))
 
 local EventsFolder = ReplicatedStorage:FindFirstChild("Events") or Instance.new("Folder")
 EventsFolder.Name = "Events"
@@ -19,16 +18,16 @@ if not RoundStateEvent then
 	print("[lava_birds] RoundState RemoteEvent creado")
 end
 
-local CoinsEvent = EventsFolder:FindFirstChild("Coins")
-if not CoinsEvent then
-	CoinsEvent = Instance.new("RemoteEvent")
-	CoinsEvent.Name = "Coins"
-	CoinsEvent.Parent = EventsFolder
+local WinsEvent = EventsFolder:FindFirstChild("Wins")
+if not WinsEvent then
+	WinsEvent = Instance.new("RemoteEvent")
+	WinsEvent.Name = "Wins"
+	WinsEvent.Parent = EventsFolder
 end
 
 local running = false
 local roundEndTime = 0
-local coins = {}
+local wins = {}
 
 local function placeCharacterSafely(character: Model)
 	local hrp = character:FindFirstChild("HumanoidRootPart")
@@ -59,14 +58,14 @@ local function broadcast(payload)
 	RoundStateEvent:FireAllClients(payload)
 end
 
-local function updateCoins(player: Player, amount: number)
-	coins[player.UserId] = (coins[player.UserId] or 0) + amount
-	CoinsEvent:FireClient(player, coins[player.UserId])
+local function updateWins(player: Player, amount: number)
+	wins[player.UserId] = (wins[player.UserId] or 0) + amount
+	WinsEvent:FireClient(player, wins[player.UserId])
 end
 
-local function setCoins(player: Player, amount: number)
-	coins[player.UserId] = amount
-	CoinsEvent:FireClient(player, amount)
+local function setWins(player: Player, amount: number)
+	wins[player.UserId] = amount
+	WinsEvent:FireClient(player, amount)
 end
 
 local function respawnAll()
@@ -99,6 +98,7 @@ local function runRound()
 		return
 	end
 	running = true
+	print("[lava_birds] runRound start")
 
 	LavaController.reset()
 
@@ -107,38 +107,37 @@ local function runRound()
 
 	-- Cuenta regresiva antes de iniciar la lava
 	for t = Constants.RoundStartDelay, 1, -1 do
+		print(string.format("[lava_birds] prestart %d", t))
 		broadcast({ status = "prestart", remaining = t })
 		task.wait(1)
 	end
 
 	LavaController.start()
-	PowerUps.start()
 
 	roundEndTime = os.clock() + Constants.RoundDuration
 	broadcast({ status = "start", duration = Constants.RoundDuration })
+	print("[lava_birds] round started")
 
 	tickLoop()
 
 	running = false
 	LavaController.stop()
-	PowerUps.stop()
 
-	-- Recompensas: todos base, bonus a vivos
+	-- Recompensas: suma 1 victoria a los vivos
 	local winners = {}
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player.Character then
 			local hum = player.Character:FindFirstChildOfClass("Humanoid")
 			local alive = hum and hum.Health > 0
-			local reward = Constants.Rewards.BasePerRound
 			if alive then
-				reward = reward + Constants.Rewards.SurvivorBonus
 				table.insert(winners, player.Name)
+				updateWins(player, 1)
 			end
-			updateCoins(player, reward)
 		end
 	end
 
-	broadcast({ status = "ended", winners = winners })
+	local nextRound = Constants.RespawnDelay + Constants.RoundIntermission
+	broadcast({ status = "ended", winners = winners, nextRound = nextRound })
 	task.wait(Constants.RespawnDelay)
 	respawnAll()
 	task.wait(Constants.RoundIntermission)
@@ -163,7 +162,7 @@ function RoundManager.start()
 
 	-- Reubica de forma segura cuando aparece un personaje
 	Players.PlayerAdded:Connect(function(player)
-		setCoins(player, coins[player.UserId] or 0)
+		setWins(player, wins[player.UserId] or 0)
 		player.CharacterAdded:Connect(function(char)
 			task.defer(function()
 				task.wait(0.05)
@@ -174,7 +173,7 @@ function RoundManager.start()
 	end)
 
 	for _, player in ipairs(Players:GetPlayers()) do
-		setCoins(player, coins[player.UserId] or 0)
+		setWins(player, wins[player.UserId] or 0)
 		player.CharacterAdded:Connect(function(char)
 			task.defer(function()
 				task.wait(0.05)

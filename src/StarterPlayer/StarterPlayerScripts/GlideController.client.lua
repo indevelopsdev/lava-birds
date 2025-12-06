@@ -10,6 +10,11 @@ local rootPart: BasePart = character:WaitForChild("HumanoidRootPart")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Constants = require(Shared:WaitForChild("Constants"))
 
+-- Si el planeo está deshabilitado en constants, salimos.
+if not Constants.Glide.Enabled then
+	return
+end
+
 local eventsFolder = ReplicatedStorage:FindFirstChild("Events") or Instance.new("Folder")
 eventsFolder.Name = "Events"
 eventsFolder.Parent = ReplicatedStorage

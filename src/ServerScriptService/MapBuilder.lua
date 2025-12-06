@@ -22,9 +22,10 @@ local PARTS = {
 	{ name = "Step6", size = Vector3.new(12, 2, 12), cframe = CFrame.new(-18, 28, -16), color = Color3.fromRGB(120, 160, 200), material = Enum.Material.SmoothPlastic },
 	{ name = "Step7", size = Vector3.new(10, 2, 10), cframe = CFrame.new(-24, 32, 2), color = Color3.fromRGB(180, 140, 140), material = Enum.Material.Concrete },
 	{ name = "Step8", size = Vector3.new(8, 2, 10), cframe = CFrame.new(-16, 36, 18), color = Color3.fromRGB(100, 140, 200), material = Enum.Material.Metal },
-	{ name = "Step9", size = Vector3.new(10, 2, 10), cframe = CFrame.new(0, 40, 24), color = Color3.fromRGB(120, 200, 140), material = Enum.Material.Grass },
-	-- Meta alta (no la alcanza la lava MaxY=45)
-	{ name = "NestTop", size = Vector3.new(20, 2, 20), cframe = CFrame.new(0, 70, 0), color = Color3.fromRGB(255, 200, 80), material = Enum.Material.WoodPlanks },
+	{ name = "Step9", size = Vector3.new(10, 2, 10), cframe = CFrame.new(0, 42, 24), color = Color3.fromRGB(120, 200, 140), material = Enum.Material.Grass },
+	{ name = "Step10", size = Vector3.new(12, 2, 12), cframe = CFrame.new(0, 50, 8), color = Color3.fromRGB(200, 180, 120), material = Enum.Material.Wood },
+	-- Meta alta (más accesible; lava MaxY=45)
+	{ name = "NestTop", size = Vector3.new(20, 2, 20), cframe = CFrame.new(0, 55, 0), color = Color3.fromRGB(255, 200, 80), material = Enum.Material.WoodPlanks },
 }
 
 local function ensureFolder()
