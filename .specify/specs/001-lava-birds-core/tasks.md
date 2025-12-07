@@ -15,10 +15,10 @@
 - Pruebas: mapa de prueba; confirmar que el planeo no se dispara dos veces por salto y respeta cooldown.
 
 ## P3 - Riesgo/recompensa y power-ups
-- Crear módulo de power-ups en `src/ServerScriptService/PowerUps.lua`: spawn en posiciones predefinidas, duración y respawn configurables; efecto temporal (ej. resistencia a lava por 5 s).
-- Ajustar `RoundManager` para otorgar monedas al finalizar ronda según supervivencia y proximidad a lava; mantener conteo en servidor.
-- Extender HUD (`Hud.client.lua`) para mostrar monedas y feedback de power-up activo.
-- Pruebas: recoger un power-up y ver expiración; terminar ronda y recibir monedas visibles en HUD.
+- (En pausa) Power-ups deshabilitados por ahora; `PowerUps.lua` no se usa en runtime.
+- `RoundManager` ahora cuenta victorias de sobrevivientes (no monedas) y las envía a `Events/Wins`.
+- HUD (`Hud.client.lua`) muestra victorias acumuladas y banner de ganador; countdown a la siguiente ronda.
+- Si se reactivan power-ups más adelante, revisar `PowerUps.lua` y reintegrar HUD de efectos.
 
 ## Operativo
 - `rojo serve` desde el root del proyecto y conectar plugin Rojo en Studio.
