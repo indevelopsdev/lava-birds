@@ -219,7 +219,12 @@ local function runRound()
 		if player.Character then
 			local hum = player.Character:FindFirstChildOfClass("Humanoid")
 			local alive = hum and hum.Health > 0
-			if alive then
+			local inLobby = false
+			local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+			if hrp and hrp:GetAttribute("InLobby") then
+				inLobby = true
+			end
+			if alive and not inLobby then
 				table.insert(winners, player.Name)
 				updateWins(player, 1)
 			end
