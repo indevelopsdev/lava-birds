@@ -1,8 +1,9 @@
 local Constants = {
 	-- Ronda y lava
-RoundDuration = 60, -- segundos
+RoundDuration = 50, -- segundos de lava activa (total partida ~60s con prestart)
 RoundIntermission = 3,
-RoundStartDelay = 20, -- segundos antes de que la lava suba (contador visible)
+RoundStartDelay = 10, -- segundos jugables antes de que suba la lava
+LobbyWaitNoRound = 20, -- espera en lobby si no hay ronda en curso
 	Lava = {
 		PartName = "Lava", -- nombre del part en Workspace
 		StartY = -8,

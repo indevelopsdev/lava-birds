@@ -143,6 +143,10 @@ local function onTouched(otherPart: BasePart)
 	if not character then
 		return
 	end
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if hrp and hrp:GetAttribute("InLobby") then
+		return
+	end
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if humanoid and humanoid.Health > 0 then
 		humanoid:TakeDamage(Constants.LavaTouchDamage)
@@ -151,8 +155,13 @@ end
 
 local function killPlayersBelowSurface()
 	local surfaceY = Constants.Lava.StartY
+	local halfX, halfZ = Constants.Lava.Size.X * 0.5, Constants.Lava.Size.Z * 0.5
+	local center = lavaPart and lavaPart.Position or Vector3.new(0, Constants.Lava.StartY, 0)
 	if lavaPart then
 		surfaceY = lavaPart.Position.Y + (lavaPart.Size.Y * 0.5)
+		halfX = lavaPart.Size.X * 0.5
+		halfZ = lavaPart.Size.Z * 0.5
+		center = lavaPart.Position
 	end
 
 	for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
@@ -161,7 +170,12 @@ local function killPlayersBelowSurface()
 			local hrp = character:FindFirstChild("HumanoidRootPart")
 			local hum = character:FindFirstChildOfClass("Humanoid")
 			if hrp and hum and hum.Health > 0 then
-				if hrp.Position.Y <= surfaceY + 1 then
+				if hrp:GetAttribute("InLobby") then
+					-- No aplicar daño en el lobby
+					continue
+				end
+				local offset = hrp.Position - center
+				if math.abs(offset.X) <= halfX and math.abs(offset.Z) <= halfZ and hrp.Position.Y <= surfaceY + 1 then
 					hum:TakeDamage(Constants.LavaTouchDamage)
 				end
 			end

@@ -13,6 +13,14 @@ local PARTS = {
 		color = Color3.fromRGB(120, 120, 120),
 		material = Enum.Material.Cobblestone,
 	},
+	-- Lobby de espera fuera del área de lava
+	{
+		name = "WaitLobby",
+		size = Vector3.new(40, 2, 40),
+		cframe = CFrame.new(400, 5, 0),
+		color = Color3.fromRGB(180, 180, 180),
+		material = Enum.Material.Concrete,
+	},
 	-- Ruta en espiral hacia arriba
 	{ name = "Step1", size = Vector3.new(14, 2, 14), cframe = CFrame.new(0, 8, 18), color = Color3.fromRGB(90, 120, 170), material = Enum.Material.SmoothPlastic },
 	{ name = "Step2", size = Vector3.new(12, 2, 12), cframe = CFrame.new(18, 12, 12), color = Color3.fromRGB(160, 120, 90), material = Enum.Material.WoodPlanks },

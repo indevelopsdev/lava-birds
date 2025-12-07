@@ -18,6 +18,13 @@ if not RoundStateEvent then
 	print("[lava_birds] RoundState RemoteEvent creado")
 end
 
+local LobbyEvent = EventsFolder:FindFirstChild("LobbyState")
+if not LobbyEvent then
+	LobbyEvent = Instance.new("RemoteEvent")
+	LobbyEvent.Name = "LobbyState"
+	LobbyEvent.Parent = EventsFolder
+end
+
 local WinsEvent = EventsFolder:FindFirstChild("Wins")
 if not WinsEvent then
 	WinsEvent = Instance.new("RemoteEvent")
@@ -28,6 +35,25 @@ end
 local running = false
 local roundEndTime = 0
 local wins = {}
+local respawning = false
+local hasRunOnce = false
+
+local function moveLobbyPlayersToGame()
+	for _, player in ipairs(Players:GetPlayers()) do
+		local character = player.Character
+		if character then
+			local hrp = character:FindFirstChild("HumanoidRootPart")
+			if hrp and hrp:GetAttribute("InLobby") then
+				placeCharacterSafely(character)
+			end
+		end
+	end
+end
+
+local function getWaitLobby()
+	local waitLobby = game.Workspace:FindFirstChild("WaitLobby")
+	return waitLobby
+end
 
 local function placeCharacterSafely(character: Model)
 	local hrp = character:FindFirstChild("HumanoidRootPart")
@@ -43,6 +69,7 @@ local function placeCharacterSafely(character: Model)
 	-- +5 extra para evitar quedar incrustado en el suelo
 	local safeY = math.max(spawnPos.Y + 5, lavaY + Constants.SafeRespawnOffset)
 
+	hrp:SetAttribute("InLobby", false)
 	hrp.AssemblyLinearVelocity = Vector3.zero
 	hrp.AssemblyAngularVelocity = Vector3.zero
 	hrp.CFrame = CFrame.new(spawnPos.X, safeY, spawnPos.Z)
@@ -52,6 +79,53 @@ local function placeCharacterSafely(character: Model)
 		humanoid.PlatformStand = false
 		humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
 	end
+end
+
+local function placeInLobby(character: Model)
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp then
+		return
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local waitLobby = getWaitLobby()
+	local pos = waitLobby and waitLobby.Position or Vector3.new(400, 10, 0)
+	hrp:SetAttribute("InLobby", true)
+	hrp.AssemblyLinearVelocity = Vector3.zero
+	hrp.AssemblyAngularVelocity = Vector3.zero
+	hrp.CFrame = CFrame.new(pos.X, pos.Y + 3, pos.Z)
+	if humanoid then
+		humanoid.Sit = false
+		humanoid.PlatformStand = false
+		humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+	end
+
+	-- Mensaje para el jugador de que está esperando
+	local player = Players:GetPlayerFromCharacter(character)
+	if player then
+		RoundStateEvent:FireClient(player, { status = "waiting", message = "Esperando siguiente ronda" })
+		player:SetAttribute("InLobby", true)
+		local remaining
+		if running and roundEndTime > 0 then
+			remaining = roundEndTime - os.clock()
+		else
+			remaining = Constants.LobbyWaitNoRound or 20
+		end
+		sendLobbyUpdate(player, remaining)
+	end
+end
+
+local function sendLobbyUpdate(player: Player, remaining: number)
+	LobbyEvent:FireClient(player, {
+		status = "waiting",
+		remaining = math.max(0, math.floor(remaining or 0)),
+	})
+end
+
+local function broadcastLobby(remaining: number)
+	LobbyEvent:FireAllClients({
+		status = "waiting",
+		remaining = math.max(0, math.floor(remaining or 0)),
+	})
 end
 
 local function broadcast(payload)
@@ -69,6 +143,7 @@ local function setWins(player: Player, amount: number)
 end
 
 local function respawnAll()
+	respawning = true
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player.Character then
 			player:LoadCharacter()
@@ -80,12 +155,16 @@ local function respawnAll()
 			end)
 		end
 	end
+	-- Dar tiempo a que CharacterAdded dispare con respawning=true
+	task.wait(0.5)
+	respawning = false
 end
 
 local function tickLoop()
 	while running do
 		local remaining = math.max(0, roundEndTime - os.clock())
 		broadcast({ status = "tick", remaining = remaining })
+		broadcastLobby(remaining)
 		if remaining <= 0 then
 			break
 		end
@@ -102,13 +181,24 @@ local function runRound()
 
 	LavaController.reset()
 
-	-- Reubica a todos antes de que la lava suba
+	-- Trae a todos al campo de juego antes del countdown
 	respawnAll()
+	moveLobbyPlayersToGame()
+	for _, player in ipairs(Players:GetPlayers()) do
+		local character = player.Character
+		if character then
+			local hrp = character:FindFirstChild("HumanoidRootPart")
+			if hrp and hrp:GetAttribute("InLobby") then
+				placeCharacterSafely(character)
+			end
+		end
+	end
 
-	-- Cuenta regresiva antes de iniciar la lava
+	-- Cuenta regresiva antes de iniciar la lava (jugable)
 	for t = Constants.RoundStartDelay, 1, -1 do
 		print(string.format("[lava_birds] prestart %d", t))
 		broadcast({ status = "prestart", remaining = t })
+		broadcastLobby(t)
 		task.wait(1)
 	end
 
@@ -145,7 +235,21 @@ end
 
 local function roundLoop()
 	while true do
+		-- Si no hay ronda, esperar en lobby antes de iniciar
+		if not running then
+			local waitTime
+			if hasRunOnce then
+				waitTime = Constants.RespawnDelay + Constants.RoundIntermission
+			else
+				waitTime = Constants.LobbyWaitNoRound or 20
+			end
+			for t = math.floor(waitTime), 1, -1 do
+				broadcastLobby(t)
+				task.wait(1)
+			end
+		end
 		runRound()
+		hasRunOnce = true
 	end
 end
 
@@ -166,7 +270,12 @@ function RoundManager.start()
 		player.CharacterAdded:Connect(function(char)
 			task.defer(function()
 				task.wait(0.05)
-				placeCharacterSafely(char)
+				-- Por defecto al lobby; solo durante respawn activo va al campo
+				if respawning then
+					placeCharacterSafely(char)
+				else
+					placeInLobby(char)
+				end
 			end)
 		end)
 		player:LoadCharacter()
@@ -177,7 +286,11 @@ function RoundManager.start()
 		player.CharacterAdded:Connect(function(char)
 			task.defer(function()
 				task.wait(0.05)
-				placeCharacterSafely(char)
+				if respawning then
+					placeCharacterSafely(char)
+				else
+					placeInLobby(char)
+				end
 			end)
 		end)
 		player:LoadCharacter()
