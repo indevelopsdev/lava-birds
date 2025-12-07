@@ -175,17 +175,17 @@ roundEvent.OnClientEvent:Connect(function(payload)
 		timerLabel.Visible = false
 		statusLabel.Visible = false
 		countdownLabel.Visible = false
+		lobbyWait.Text = "Próxima ronda..."
 	end
 end)
 
 if lobbyEvent then
 	lobbyEvent.OnClientEvent:Connect(function(payload)
-		if not isInLobby then
-			return
-		end
 		local remaining = payload.remaining or 0
 		lobbyWait.Text = string.format("Próxima ronda en %ds", math.max(0, math.floor(remaining)))
-		lobbyWait.Visible = true
+		if isInLobby then
+			lobbyWait.Visible = true
+		end
 	end)
 end
 
