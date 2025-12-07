@@ -7,6 +7,7 @@
 - Script de lava en `src/ServerScriptService/LavaController.lua`: mueve la parte de lava según fases (TweenService o CFrame), elimina/penaliza al tocar; respawn del jugador.
 - HUD básico en `src/StarterPlayer/StarterPlayerScripts/Hud.client.lua`: muestra tiempo restante y estado de lava (usa eventos remotos).
 - Pruebas: Play (1 jugador) y Start Server (2 jugadores). Verificar que tocar lava elimina y respawnea; que el temporizador termina la ronda.
+- NUEVO: Lobby de espera para jugadores que se unan a mitad de ronda, fuera de la zona de lava; teletransportar al área de juego solo al inicio de la siguiente ronda (mostrar estado “esperando”).
 
 ## P2 - Movilidad de ave (doble salto/planeo)
 - Añadir módulo de movimiento en `src/StarterPlayer/StarterPlayerScripts/GlideController.client.lua`: doble salto una vez por aire, planeo con gravedad reducida y cooldown visible.

@@ -2,7 +2,7 @@ local Constants = {
 	-- Ronda y lava
 RoundDuration = 60, -- segundos
 RoundIntermission = 3,
-RoundStartDelay = 10, -- segundos antes de que la lava suba (contador visible)
+RoundStartDelay = 20, -- segundos antes de que la lava suba (contador visible)
 	Lava = {
 		PartName = "Lava", -- nombre del part en Workspace
 		StartY = -8,

@@ -50,6 +50,7 @@ Como jugador, puedo recoger power-ups y ganar monedas por sobrevivir más cerca 
 - ¿Qué pasa si la lava sobrepasa el spawn? → Forzar respawn seguro y ajustar altura base al reiniciar ronda.
 - ¿Cómo se maneja desconexión en medio de ronda? → Remover del round state sin afectar a otros.
 - ¿Qué ocurre si dos power-ups se recogen al mismo tiempo? → Aplicar uno y poner cooldown de respawn para evitar stacking no deseado.
+- ¿Qué pasa si un jugador entra a mitad de ronda? → Debe quedar en un lobby seguro y unirse solo al iniciar la siguiente ronda tras el countdown.
 
 ## Requirements *(mandatory)*
 
@@ -61,6 +62,7 @@ Como jugador, puedo recoger power-ups y ganar monedas por sobrevivir más cerca 
 - **FR-005**: El servidor calcula monedas/puntos por supervivencia y cercanía a la lava; el cliente solo muestra.
 - **FR-006**: El HUD muestra tiempo restante, altura/estado de lava y monedas actuales; es legible en español.
 - **FR-007**: Soporta prueba local en Studio con Start Server (2+ jugadores) sin dependencias externas.
+- **FR-008**: Jugadores que se unen a mitad de ronda permanecen en un lobby seguro y solo ingresan al área de juego al iniciar la siguiente ronda (ven el countdown).
 
 ### Key Entities *(include if feature involves data)*
 - **RoundState**: temporizador, fase de lava, jugadores vivos, spawn points.

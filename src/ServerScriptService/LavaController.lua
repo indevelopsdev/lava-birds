@@ -12,6 +12,8 @@ local touchConn: RBXScriptConnection?
 local textureA: Texture?
 local textureB: Texture?
 local surface: SurfaceAppearance?
+local fireRef: Fire?
+local emitterRef: ParticleEmitter?
 
 local function ensureLavaPart()
 	-- Busca el part; si no existe, crea uno con los valores de Constants.
@@ -53,6 +55,7 @@ local function ensureEffects(part: BasePart)
 		fire.SecondaryColor = Color3.fromRGB(255, 50, 10)
 		fire.Parent = part
 	end
+	fireRef = fire
 
 	local emitter = part:FindFirstChildOfClass("ParticleEmitter")
 	if not emitter then
@@ -76,6 +79,7 @@ local function ensureEffects(part: BasePart)
 		})
 		emitter.Parent = part
 	end
+	emitterRef = emitter
 
 	-- Textura desplazada para simular flujo
 	if not textureA then
@@ -117,9 +121,18 @@ function LavaController.reset()
 	if Constants.Lava.Material then
 		lavaPart.Material = Constants.Lava.Material
 	end
-	lavaPart.Transparency = 0 -- sin transparencia para tapar el fondo
+	-- Oculta la lava hasta que inicie la ronda
+	lavaPart.Transparency = 1
 	lavaPart.Reflectance = 0
 	ensureEffects(lavaPart)
+	lavaPart.CanTouch = false
+	if fireRef then
+		fireRef.Enabled = false
+	end
+	if emitterRef then
+		emitterRef.Enabled = false
+	end
+
 	local pos = lavaPart.Position
 	lavaPart.CFrame = CFrame.new(pos.X, Constants.Lava.StartY, pos.Z)
 	print(string.format("[lava_birds] Lava reset a Y=%.2f", Constants.Lava.StartY))
@@ -170,6 +183,16 @@ function LavaController.start()
 	running = true
 	local phase2Time = Constants.Lava.Phase2StartTime
 	local startTime = os.clock()
+
+	-- Muestra la lava al iniciar
+	lavaPart.Transparency = 0
+	lavaPart.CanTouch = true
+	if fireRef then
+		fireRef.Enabled = true
+	end
+	if emitterRef then
+		emitterRef.Enabled = true
+	end
 
 	if heartbeatConn then
 		heartbeatConn:Disconnect()

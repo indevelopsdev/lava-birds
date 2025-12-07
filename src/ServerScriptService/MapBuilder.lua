@@ -10,8 +10,8 @@ local PARTS = {
 		name = "Lobby",
 		size = Vector3.new(50, 2, 50),
 		cframe = CFrame.new(0, 0, 0),
-		color = Color3.fromRGB(60, 60, 60),
-		material = Enum.Material.Slate,
+		color = Color3.fromRGB(120, 120, 120),
+		material = Enum.Material.Cobblestone,
 	},
 	-- Ruta en espiral hacia arriba
 	{ name = "Step1", size = Vector3.new(14, 2, 14), cframe = CFrame.new(0, 8, 18), color = Color3.fromRGB(90, 120, 170), material = Enum.Material.SmoothPlastic },
