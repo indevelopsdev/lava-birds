@@ -20,6 +20,8 @@
 - `RoundManager` ahora cuenta victorias de sobrevivientes (no monedas) y las envía a `Events/Wins`.
 - HUD (`Hud.client.lua`) muestra victorias acumuladas y banner de ganador; countdown a la siguiente ronda.
 - Si se reactivan power-ups más adelante, revisar `PowerUps.lua` y reintegrar HUD de efectos.
+- Eliminado `AvatarApplier`/`BirdDescription` y `StarterCharacterScripts/BirdMorph.server.lua` (pico/alas por script); el avatar se controla ahora con el `StarterCharacter` que tengas en Studio.
+- Fix: `RoundManager` reordena `sendLobbyUpdate` (evita llamada nil).
 
 ## Operativo
 - `rojo serve` desde el root del proyecto y conectar plugin Rojo en Studio.
