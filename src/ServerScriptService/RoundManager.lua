@@ -52,7 +52,14 @@ end
 
 local function getWaitLobby()
 	local waitLobby = game.Workspace:FindFirstChild("WaitLobby")
-	return waitLobby
+	if waitLobby then
+		return waitLobby
+	end
+	local generated = game.Workspace:FindFirstChild("MapGenerated")
+	if generated then
+		return generated:FindFirstChild("WaitLobby")
+	end
+	return nil
 end
 
 local function placeCharacterSafely(character: Model)

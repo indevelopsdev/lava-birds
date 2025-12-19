@@ -22,6 +22,9 @@
 - Si se reactivan power-ups más adelante, revisar `PowerUps.lua` y reintegrar HUD de efectos.
 - Eliminado `AvatarApplier`/`BirdDescription` y `StarterCharacterScripts/BirdMorph.server.lua` (pico/alas por script); el avatar se controla ahora con el `StarterCharacter` que tengas en Studio.
 - Fix: `RoundManager` reordena `sendLobbyUpdate` (evita llamada nil).
+- `Main.server.lua` ahora requiere `SetBirdCharacter` para clonar `ReplicatedStorage/Characters/BirdCharacter` a todos los jugadores.
+- Nuevo: `StarterPlayer/StarterPlayerScripts/CameraReset.client.lua` asegura que la cámara siga al Humanoid al reaparecer o moverse de lobby.
+- Nuevo: `ServerScriptService/SetBirdCharacter.lua` permite usar `ReplicatedStorage/Characters/BirdCharacter` como avatar para todos los jugadores (requiere que el modelo tenga Humanoid/Animator/Animate).
 
 ## Operativo
 - `rojo serve` desde el root del proyecto y conectar plugin Rojo en Studio.
