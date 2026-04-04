@@ -28,7 +28,7 @@ timerLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 timerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 timerLabel.Font = Enum.Font.GothamBold
 timerLabel.TextScaled = true
-timerLabel.Text = "Esperando ronda..."
+timerLabel.Text = "🔥 LAVA BIRDS 🔥"
 timerLabel.Parent = gui
 
 local statusLabel = Instance.new("TextLabel")
@@ -78,7 +78,7 @@ winsLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
 winsLabel.TextColor3 = Color3.fromRGB(255, 255, 120)
 winsLabel.Font = Enum.Font.GothamBold
 winsLabel.TextScaled = true
-winsLabel.Text = "Victorias: 0"
+winsLabel.Text = "🏆 Victorias: 0"
 winsLabel.Parent = gui
 
 local winnerBanner = Instance.new("TextLabel")
@@ -210,7 +210,7 @@ end
 -- Victorias
 if winsEvent then
 	winsEvent.OnClientEvent:Connect(function(amount)
-		winsLabel.Text = string.format("Victorias: %d", amount or 0)
+		winsLabel.Text = string.format("🏆 Victorias: %d", amount or 0)
 	end)
 else
 	warn("[lava_birds] Wins RemoteEvent no encontrado; HUD sin victorias")
