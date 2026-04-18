@@ -1,16 +1,22 @@
-local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local player = Players.LocalPlayer
+local BASE_STEP_SPEED = 9
+local SPRINT_STEP_SPEED = 16
+local IDLE_STEP_SPEED = 1.5
 
-local function setupChickenMovement(character)
-	-- Esperar a que sea el BirdCharacter real (el servidor lo reemplaza después de CharacterAdded)
-	if not character:GetAttribute("IsBirdCharacter") then
-		character:GetAttributeChangedSignal("IsBirdCharacter"):Wait()
-		-- El servidor reemplazó el personaje; la nueva instancia llegará por CharacterAdded
-		return
-	end
+local ChickenMovement = {}
+ChickenMovement.__index = ChickenMovement
 
+function ChickenMovement.new(character, getIsSprinting)
+	local self = setmetatable({}, ChickenMovement)
+	self._character = character
+	self._getIsSprinting = getIsSprinting or function() return false end
+	self._connection = nil
+	return self
+end
+
+function ChickenMovement:start()
+	local character = self._character
 	local humanoid = character:WaitForChild("Humanoid")
 	local torso = character:WaitForChild("Torso")
 
@@ -32,39 +38,44 @@ local function setupChickenMovement(character)
 	local rightHipC0 = rightHip and rightHip.C0
 
 	local t = 0
-	local conn
 
-	conn = RunService.Heartbeat:Connect(function(dt)
+	self._connection = RunService.Heartbeat:Connect(function(dt)
 		if not character.Parent then
-			conn:Disconnect()
+			self:destroy()
 			return
 		end
 
 		t = t + dt
 
 		local isMoving = humanoid.MoveDirection.Magnitude > 0.1
+		local isSprinting = self._getIsSprinting()
 		local state = humanoid:GetState()
 		local isInAir = state == Enum.HumanoidStateType.Freefall
 			or state == Enum.HumanoidStateType.Jumping
 
-		local stepSpeed = isMoving and 9 or 1.5
+		local stepSpeed
+		if not isMoving then
+			stepSpeed = IDLE_STEP_SPEED
+		elseif isSprinting then
+			stepSpeed = SPRINT_STEP_SPEED
+		else
+			stepSpeed = BASE_STEP_SPEED
+		end
 
-		-- Cabeza: picoteo hacia adelante/atrás
 		local headBob = math.sin(t * stepSpeed) * (isMoving and 0.18 or 0.03)
 		neck.C0 = neckC0 * CFrame.Angles(headBob, 0, 0)
 
-		-- Piernas: waddle alternado (el espejo del joint derecho hace la alternancia)
 		if leftHip and rightHip and leftHipC0 and rightHipC0 then
-			local stepAmount = isMoving and 0.35 or 0
+			local stepAmount = isMoving and (isSprinting and 0.5 or 0.35) or 0
 			local step = math.sin(t * stepSpeed) * stepAmount
 			leftHip.C0 = leftHipC0 * CFrame.Angles(0, 0, step)
 			rightHip.C0 = rightHipC0 * CFrame.Angles(0, 0, step)
 		end
 
-		-- Alas: aleteo al estar en el aire
 		if leftShoulder and rightShoulder and leftShoulderC0 and rightShoulderC0 then
 			if isInAir then
-				local flap = math.sin(t * 12) * 1.0
+				local flapSpeed = isSprinting and 18 or 12
+				local flap = math.sin(t * flapSpeed) * 1.0
 				leftShoulder.C0 = leftShoulderC0 * CFrame.Angles(0, 0, flap)
 				rightShoulder.C0 = rightShoulderC0 * CFrame.Angles(0, 0, -flap)
 			else
@@ -75,9 +86,11 @@ local function setupChickenMovement(character)
 	end)
 end
 
-player.CharacterAdded:Connect(setupChickenMovement)
-
-local char = player.Character
-if char then
-	setupChickenMovement(char)
+function ChickenMovement:destroy()
+	if self._connection then
+		self._connection:Disconnect()
+		self._connection = nil
+	end
 end
+
+return ChickenMovement
